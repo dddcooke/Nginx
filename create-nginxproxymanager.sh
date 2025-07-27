@@ -3,8 +3,9 @@
 echo "📦 Proxmox LXC NGINX Proxy Manager Setup"
 echo "----------------------------------------"
 
-# Get CTID
-read -p "Enter Container ID (e.g., 152): " CTID
+# Auto-find next available CTID
+CTID=$(for i in $(seq 100 999); do pct status $i >/dev/null 2>&1 || { echo $i; break; }; done)
+echo "ℹ️  Next available CTID detected: $CTID"
 
 # Get hostname (optional)
 read -p "Enter hostname [nginxproxymanager]: " HOSTNAME
@@ -35,11 +36,10 @@ echo "  Hostname:   $HOSTNAME"
 echo "  Network:    $IPCONFIG"
 echo ""
 
-# Confirm to continue
 read -p "Proceed with container creation? [y/N]: " CONFIRM
 [[ "$CONFIRM" =~ ^[Yy]$ ]] || exit 1
 
-# Download Debian template if needed
+# Download template if needed
 TEMPLATE="debian-12-standard_12.7-1_amd64.tar.zst"
 if ! ls /var/lib/vz/template/cache/$TEMPLATE >/dev/null 2>&1; then
     echo "📥 Downloading Debian 12 template..."
