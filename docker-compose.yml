@@ -1,9 +1,12 @@
-pct exec $CTID -- bash -c "
-apt update && apt install -y curl ca-certificates gnupg lsb-release git &&
-curl -fsSL https://get.docker.com | sh &&
-apt install -y docker-compose &&
-mkdir -p /opt/npm &&
-cd /opt &&
-git clone https://github.com/dddcooke/Nginx.git /opt/NginxRepo &&
-cp /opt/NginxRepo/docker-compose.yml /opt/npm/
-"
+version: '3'
+services:
+  app:
+    image: jc21/nginx-proxy-manager:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
