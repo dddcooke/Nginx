@@ -72,23 +72,25 @@ sleep 5
 # Optional: grant root access
 read -p "🔐 Add Proxmox root SSH key to container for root login? [y/N]: " ROOT_SSH
 if [[ "$ROOT_SSH" =~ ^[Yy]$ ]]; then
+    echo
+    read -s -p "Enter new root password (leave blank to skip): " ROOTPW
+    echo
+    if [[ -n "$ROOTPW" ]]; then
+        echo "🔐 Setting root password..."
+        echo "root:$ROOTPW" | pct exec $CTID -- chpasswd
+    fi
+
     echo "📤 Injecting root SSH access from host..."
 
-read -s -p "Enter new root password (leave blank to skip): " ROOTPW
-if [[ -n "$ROOTPW" ]]; then
-    echo
-    echo "🔐 Setting root password..."
-    echo "root:$ROOTPW" | pct exec $CTID -- chpasswd
-fi
-
-    # Ensure the container has sshd and authorized_keys setup
+    # Ensure SSH server and permissions are in place
     pct exec $CTID -- bash -c "
+      apt update &&
       apt install -y openssh-server &&
       mkdir -p /root/.ssh &&
       chmod 700 /root/.ssh
     "
 
-    # Copy root SSH key from Proxmox host into the container
+    # Copy root key from host
     HOST_SSH_KEY=$(cat /root/.ssh/id_rsa.pub 2>/dev/null)
     if [[ -z "$HOST_SSH_KEY" ]]; then
         echo "⚠️ No /root/.ssh/id_rsa.pub found on host. Skipping key injection."
