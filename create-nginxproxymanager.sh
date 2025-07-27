@@ -82,7 +82,6 @@ if [[ "$ROOT_SSH" =~ ^[Yy]$ ]]; then
 
     echo "📤 Injecting root SSH access from host..."
 
-    # Ensure SSH server and permissions are in place
     pct exec $CTID -- bash -c "
       apt update &&
       apt install -y openssh-server &&
@@ -90,7 +89,6 @@ if [[ "$ROOT_SSH" =~ ^[Yy]$ ]]; then
       chmod 700 /root/.ssh
     "
 
-    # Copy root key from host
     HOST_SSH_KEY=$(cat /root/.ssh/id_rsa.pub 2>/dev/null)
     if [[ -z "$HOST_SSH_KEY" ]]; then
         echo "⚠️ No /root/.ssh/id_rsa.pub found on host. Skipping key injection."
