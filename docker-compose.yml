@@ -1,12 +1,31 @@
 version: '3'
 services:
-  app:
-    image: jc21/nginx-proxy-manager:latest
-    restart: always
-    ports:
-      - "80:80"
-      - "81:81"
-      - "443:443"
+  nginx_proxy_manager:
+    image: "jc21/nginx-proxy-manager:latest"
+    container_name: nginx_proxy_manager
+    restart: unless-stopped
+    network_mode: "host"
     volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
+      - ./data/npm_data:/data
+      - ./data/npm_letsencrypt:/etc/letsencrypt
+      - ./data/npm_logs:/var/log/nginx  
+    environment:
+      DB_SQLITE_FILE: "/data/database.sqlite"
+      INITIAL_ADMIN_EMAIL: admin@example.com
+      INITIAL_ADMIN_PASSWORD: changeme
+
+  goaccess:
+    image: justsky/goaccess-for-nginxproxymanager:latest
+    container_name: goaccess
+    restart: unless-stopped
+    environment:
+      - TZ=America/Denver
+      # - SKIP_ARCHIVED_LOGS=False
+      # - BASIC_AUTH=False
+      # - BASIC_AUTH_USERNAME=user
+      # - BASIC_AUTH_PASSWORD=pass
+    ports:
+      - '7880:7880'
+    volumes:
+      - ./data/npm_logs:/opt/log
+      # - ./data/npm_logs/proxy-host-1_access.log:/opt/log/proxy-host-1_access.log
