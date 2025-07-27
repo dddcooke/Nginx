@@ -69,6 +69,31 @@ EOF
 pct start $CTID
 sleep 5
 
+# Optional: grant root access
+read -p "🔐 Add Proxmox root SSH key to container for root login? [y/N]: " ROOT_SSH
+if [[ "$ROOT_SSH" =~ ^[Yy]$ ]]; then
+    echo "📤 Injecting root SSH access from host..."
+
+    # Ensure the container has sshd and authorized_keys setup
+    pct exec $CTID -- bash -c "
+      apt install -y openssh-server &&
+      mkdir -p /root/.ssh &&
+      chmod 700 /root/.ssh
+    "
+
+    # Copy root SSH key from Proxmox host into the container
+    HOST_SSH_KEY=$(cat /root/.ssh/id_rsa.pub 2>/dev/null)
+    if [[ -z "$HOST_SSH_KEY" ]]; then
+        echo "⚠️ No /root/.ssh/id_rsa.pub found on host. Skipping key injection."
+    else
+        pct exec $CTID -- bash -c "echo \"$HOST_SSH_KEY\" >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys"
+        pct exec $CTID -- bash -c "sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config"
+        pct exec $CTID -- bash -c "sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config"
+        pct exec $CTID -- systemctl restart ssh
+        echo "✅ Root SSH access enabled for container $CTID"
+    fi
+fi
+
 # Install Docker, Docker Compose, and pull GitHub file
 echo "🐳 Installing Docker and setting up NPM..."
 pct exec $CTID -- bash -c "
