@@ -3,9 +3,10 @@
 echo "📦 Proxmox LXC NGINX Proxy Manager Setup"
 echo "----------------------------------------"
 
-# Auto-find next available CTID
-CTID=$(for i in $(seq 100 999); do pct status $i >/dev/null 2>&1 || { echo $i; break; }; done)
-echo "ℹ️  Next available CTID detected: $CTID"
+# Suggest next available CTID but allow override
+SUGGESTED_CTID=$(for i in $(seq 100 999); do pct status $i >/dev/null 2>&1 || { echo $i; break; }; done)
+read -p "Enter CTID to use [$SUGGESTED_CTID]: " CTID
+CTID=${CTID:-$SUGGESTED_CTID}
 
 # Get hostname (optional)
 read -p "Enter hostname [nginxproxymanager]: " HOSTNAME
