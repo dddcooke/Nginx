@@ -48,7 +48,9 @@ apt install -y docker-compose &&
 mkdir -p /opt/npm &&
 cd /opt &&
 git clone https://github.com/dddcooke/Nginx.git &&
-cp Nginx/docker-compose.yml /opt/npm/
+cp /opt/Nginx/docker-compose.yml /opt/npm/ &&
+ls -l /opt/npm &&
+docker-compose -f /opt/npm/docker-compose.yml up -d
 "
 
 # Start NPM container
